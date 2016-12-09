@@ -47,5 +47,15 @@ mac {
     LIBS += -lopencv_nonfree
     LIBS += -lopencv_legacy
 } win32 {
-
+    INCLUDEPATH += C:/opencv-mingw/install/include
+    LIBS += -LC:/opencv-mingw/install/x86/mingw/bin
+    LIBS += -lopencv_core310
+    LIBS += -lopencv_imgproc310
+    LIBS += -lopencv_highgui310
+    LIBS += -lopencv_ml310
+    LIBS += -lopencv_video310
+    LIBS += -lopencv_features2d310
+    LIBS += -lopencv_calib3d310
+    LIBS += -lopencv_objdetect310
+    LIBS += -lopencv_imgcodecs310
 }
