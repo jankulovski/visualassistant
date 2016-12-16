@@ -112,6 +112,10 @@ void MainWindow::processFrame(QImage frame)
     _t_avg_t += time;
     ++_t_c_f;
 
+    ui->label_sync->setText(QString("%1 : %2 # %3").arg(QString::number( (player->position() / 1000) * 60 ))
+                            .arg(QString::number( fraren ))
+                            .arg(QString::number( ((player->position() / 1000) * 60) - fraren )));
+
     ui->label_fps->setText(QString("%1").arg(QString::number( fraren / ((cv::getTickCount() - stime) /
                                                                         cv::getTickFrequency()) )));
     ui->label_ptavg->setText(QString("%1 s.").arg(QString::number(_t_avg_t/_t_c_f)));
@@ -121,9 +125,6 @@ void MainWindow::processFrame(QImage frame)
     ui->label_abr->setText(QString("%1").arg(player->metaData(QMediaMetaData::AudioBitRate).toString()));
     ui->label_vbr->setText(QString("%1").arg(player->metaData(QMediaMetaData::VideoBitRate).toString()));
     ui->label_vfr->setText(QString("%1").arg(player->metaData(QMediaMetaData::VideoFrameRate).toString()));
-    ui->label_sync->setText(QString("%1 : %2 # %3").arg(QString::number( (player->position() / 1000) * 60 ))
-                            .arg(QString::number( fraren ))
-                            .arg(QString::number( ((player->position() / 1000) * 60) - fraren )));
 }
 
 cv::Mat lut(1, 256, CV_8U);
