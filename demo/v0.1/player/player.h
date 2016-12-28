@@ -52,6 +52,8 @@
 #include <QSlider>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QGraphicsView>
+#include <QGraphicsScene>
 
 QT_BEGIN_NAMESPACE
 class QAbstractItemView;
@@ -104,6 +106,7 @@ private slots:
     void displayErrorMessage();
     void showColorDialog();
     void methodChanged(const QString &method);
+    void processFrame(const QImage &frame);
 
 private:
     void setTrackInfo(const QString &info);
@@ -137,6 +140,8 @@ private:
     QSlider *contrastSlider;
 
     QVideoProbe *probe;
+    QGraphicsView *graphicsView;
+    QGraphicsScene *scene;
 
     PlaylistModel *playlistModel;
     QAbstractItemView *playlistView;

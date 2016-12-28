@@ -49,7 +49,7 @@
 #include <QMediaMetaData>
 #include <QtWidgets>
 
-#include <opencv/highgui.h>
+#include "videosurface.h"
 
 Player::Player(QWidget *parent)
     : QWidget(parent)
@@ -77,7 +77,12 @@ Player::Player(QWidget *parent)
 
 //! [2]
     videoWidget = new VideoWidget(this);
-    player->setVideoOutput(videoWidget);
+    videoWidget->setVisible(false);
+    //player->setVideoOutput(videoWidget);
+    VideoSurface* surface = new VideoSurface(this);
+    player->setVideoOutput(surface);
+
+    connect(surface, SIGNAL(frameAvailable(QImage)), this, SLOT(processFrame(QImage)));
 
     playlistModel = new PlaylistModel(this);
     playlistModel->setPlaylist(playlist);
@@ -189,7 +194,15 @@ Player::Player(QWidget *parent)
     connect(colorButton, SIGNAL(clicked()), this, SLOT(showColorDialog()));
 
     QBoxLayout *displayLayout = new QHBoxLayout;
-    displayLayout->addWidget(videoWidget, 2);
+
+    scene = new QGraphicsScene(this);
+    graphicsView = new QGraphicsView(this);
+    graphicsView->setScene(scene);
+    graphicsView->setMinimumSize(300, 300);
+    graphicsView->setBackgroundBrush(QBrush(Qt::black, Qt::SolidPattern));
+
+    displayLayout->addWidget(graphicsView, 2);
+    // displayLayout->addWidget(videoWidget, 2);
     // displayLayout->addWidget(playlistView);
     displayLayout->addWidget(customControlsBox_1, 1);
     displayLayout->addWidget(customControlsBox_2, 1);
@@ -232,6 +245,16 @@ Player::Player(QWidget *parent)
 
 Player::~Player()
 {
+}
+
+void Player::processFrame(const QImage &frame)
+{
+    QPixmap image = QPixmap::fromImage(frame);
+    graphicsView->scene()->clear();
+    scene->addPixmap(image);
+    scene->setSceneRect(image.rect());
+    graphicsView->setScene(scene);
+    graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
 void Player::methodChanged(const QString &method)
