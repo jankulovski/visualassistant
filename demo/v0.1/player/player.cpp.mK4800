@@ -179,7 +179,7 @@ Player::Player(QWidget *parent)
     connect(player, SIGNAL(volumeChanged(int)), controls, SLOT(setVolume(int)));
     connect(player, SIGNAL(mutedChanged(bool)), controls, SLOT(setMuted(bool)));
 
-    connect(customControlsCombo, SIGNAL(currentTextChanged(QString)), this, SLOT(methodChanged(QString)));
+    connect(customControlsCombo, SIGNAL(currentTextChanged(QString)), methodChanged(QString));
 
     fullScreenButton = new QPushButton(tr("FullScreen"), this);
     fullScreenButton->setCheckable(true);
@@ -253,6 +253,7 @@ void Player::loadSettings(const QString &filename)
         customControlsCombo->addItem(obj["name"].toString());
     }
     customControlsCombo->setCurrentIndex(0);
+    loadMethod(customControlsCombo->currentText());
 }
 
 const QJsonObject Player::getMethodSettings(const QString &method)
@@ -268,7 +269,6 @@ const QJsonObject Player::getMethodSettings(const QString &method)
 
 void Player::loadMethod(const QString &method)
 {
-    qDebug() << method;
     QJsonObject obj = getMethodSettings(method);
     QJsonArray params = obj["params"].toArray();
     foreach (const QJsonValue & param, params) {

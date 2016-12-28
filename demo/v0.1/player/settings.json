@@ -1,0 +1,1 @@
+{"methods": [{"name": "Detail1","method_id": 1,"params": [{"par_name": "intensity","min": 0,"max": 100,"default": 80,"icon": "intensity","px_to_scroll": 40},{"par_name": "kernel","min": 3,"max": 15,"default": 3,"icon": "noise","px_to_scroll": 10}]}]}

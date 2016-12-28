@@ -46,6 +46,12 @@
 #include <QWidget>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QComboBox>
+#include <QSlider>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 QT_BEGIN_NAMESPACE
 class QAbstractItemView;
@@ -56,6 +62,10 @@ class QPushButton;
 class QSlider;
 class QVideoProbe;
 class QVideoWidget;
+class QGroupBox;
+class QVBoxLayout;
+class QComboBox;
+class QJsonArray;
 QT_END_NAMESPACE
 
 class PlaylistModel;
@@ -92,14 +102,18 @@ private slots:
     void videoAvailableChanged(bool available);
 
     void displayErrorMessage();
-
     void showColorDialog();
+    void methodChanged(const QString &method);
 
 private:
     void setTrackInfo(const QString &info);
     void setStatusInfo(const QString &info);
     void handleCursor(QMediaPlayer::MediaStatus status);
     void updateDurationInfo(qint64 currentInfo);
+    void loadSettings(const QString &filename);
+    void loadMethod(const QString &method);
+    void adjustSettingsSlider(const QString &sname, const int &min, const int &max, const int &def);
+    const QJsonObject getMethodSettings(const QString &method);
 
     QMediaPlayer *player;
     QMediaPlaylist *playlist;
@@ -110,6 +124,17 @@ private:
     QPushButton *fullScreenButton;
     QPushButton *colorButton;
     QDialog *colorDialog;
+    QComboBox *customControlsCombo;
+
+    QSlider *intensitySlider;
+    QSlider *kernelSlider;
+    QSlider *blockSizeSlider;
+    QSlider *constantSlider;
+    QSlider *gammaSlider;
+    QSlider *colorSlider;
+    QSlider *sharpnessSlider;
+    QSlider *detailsSlider;
+    QSlider *contrastSlider;
 
     QVideoProbe *probe;
 
@@ -118,6 +143,8 @@ private:
     QString trackInfo;
     QString statusInfo;
     qint64 duration;
+
+    QJsonArray settings;
 };
 
 #endif // PLAYER_H

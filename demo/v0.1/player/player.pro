@@ -32,3 +32,5 @@ LIBS += -lopencv_features2d320
 LIBS += -lopencv_calib3d320
 LIBS += -lopencv_objdetect320
 LIBS += -lopencv_imgcodecs320
+
+FORMS +=
