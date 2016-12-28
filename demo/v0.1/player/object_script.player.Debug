@@ -4,10 +4,10 @@ INPUT(
 ./debug\playercontrols.o
 ./debug\playlistmodel.o
 ./debug\videowidget.o
-./debug\histogramwidget.o
+./debug\videosurface.o
 ./debug\moc_player.o
 ./debug\moc_playercontrols.o
 ./debug\moc_playlistmodel.o
 ./debug\moc_videowidget.o
-./debug\moc_histogramwidget.o
+./debug\moc_videosurface.o
 );

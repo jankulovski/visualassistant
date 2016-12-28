@@ -268,7 +268,6 @@ const QJsonObject Player::getMethodSettings(const QString &method)
 
 void Player::loadMethod(const QString &method)
 {
-    qDebug() << method;
     QJsonObject obj = getMethodSettings(method);
     QJsonArray params = obj["params"].toArray();
     foreach (const QJsonValue & param, params) {
