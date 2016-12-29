@@ -574,3 +574,53 @@ void Player::showColorDialog()
     }
     colorDialog->show();
 }
+
+inline QImage mat_to_qimage(cv::Mat &mat, QImage::Format format)
+{
+    return QImage(mat.data, mat.cols, mat.rows,
+                  static_cast<int>(mat.step), format);
+}
+
+inline cv::Mat qimage_to_mat(QImage &img, int format)
+{
+    return cv::Mat(img.height(), img.width(),
+                   format, img.bits(), img.bytesPerLine());
+}
+
+QImage mat_to_qimage(cv::Mat &mat)
+{
+    if(!mat.empty()){
+        switch(mat.type()){
+        case CV_8UC3: return mat_to_qimage(mat, QImage::Format_RGB888);
+        case CV_8U: return mat_to_qimage(mat, QImage::Format_Indexed8);
+        case CV_8UC4: return mat_to_qimage(mat, QImage::Format_ARGB32);
+        }
+    }
+    return {};
+}
+
+cv::Mat qimage_to_mat(QImage &img)
+{
+    if(img.isNull()){
+        return cv::Mat();
+    }
+
+    switch (img.format()) {
+    case QImage::Format_RGB888:{
+        auto result = qimage_to_mat(img, CV_8UC3);
+        cv::cvtColor(result, result, CV_RGB2BGR);
+        return result;
+    }
+    case QImage::Format_Indexed8:{
+        return qimage_to_mat(img, CV_8U);
+    }
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32:
+    case QImage::Format_ARGB32_Premultiplied:{
+        return qimage_to_mat(img, CV_8UC4);
+    }
+    default:
+        break;
+    }
+    return {};
+}

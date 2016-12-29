@@ -55,6 +55,10 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 QT_BEGIN_NAMESPACE
 class QAbstractItemView;
 class QLabel;
@@ -150,6 +154,9 @@ private:
     qint64 duration;
 
     QJsonArray settings;
+
+    QImage Mat2QImage(cv::Mat const& src);
+    cv::Mat QImage2Mat(QImage const& src);
 };
 
 #endif // PLAYER_H
