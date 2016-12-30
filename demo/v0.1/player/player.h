@@ -156,7 +156,11 @@ private:
     QJsonArray settings;
 
     QImage Mat2QImage(cv::Mat const& src);
+    QImage applyEffect(QImage frame, const QString method);
     cv::Mat QImage2Mat(QImage const& src);
+
+    cv::Mat original;
+    cv::Mat applied;
 };
 
 #endif // PLAYER_H
