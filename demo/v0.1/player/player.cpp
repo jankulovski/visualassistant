@@ -92,6 +92,7 @@ Player::Player(QWidget *parent)
     playlistView->setModel(playlistModel);
     playlistView->setCurrentIndex(playlistModel->index(playlist->currentIndex(), 0));
     playlistView->setVisible(false);
+    playlistView->hide();
 
     QGroupBox *customControlsBox_1 = new QGroupBox(this);
     QGroupBox *customControlsBox_2 = new QGroupBox(this);
@@ -668,7 +669,7 @@ QImage Player::applyEffect(QImage frame, const QString method)
 {
     original = qimage_to_mat(frame);
 
-    if(method == "Detail 1") {
+    if(method == "Detail1") {
         applied = custom_1(original);
     } else if(method == "Detail 2") {
         //
