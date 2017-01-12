@@ -99,53 +99,16 @@ Player::Player(QWidget *parent)
     QVBoxLayout *customVBox_1 = new QVBoxLayout();
     QVBoxLayout *customVBox_2 = new QVBoxLayout();
     customControlsCombo = new QComboBox(this);
+    customControlsCombo->addItem("None");
 
     customControlsBox_1->setMinimumSize(100, 200);
     customControlsBox_2->setMinimumSize(100, 200);
 
-    QLabel *intensityLabel = new QLabel("Intensity");
-    QLabel *kernelLabel = new QLabel("Kernel");
-    QLabel *blockSizeLabel = new QLabel("Block Size");
-    QLabel *constantLabel = new QLabel("Constant");
-
-    QLabel *gammaLabel = new QLabel("Gamma");
-    QLabel *colorLabel = new QLabel("Color");
-    QLabel *sharpnessLabel = new QLabel("Sharpness");
-    QLabel *detailsLabel = new QLabel("Details");
-    QLabel *contrastLabel = new QLabel("Contrast");
-
-    intensitySlider = new QSlider(Qt::Horizontal);
-    kernelSlider = new QSlider(Qt::Horizontal);
-    blockSizeSlider = new QSlider(Qt::Horizontal);
-    constantSlider = new QSlider(Qt::Horizontal);
-    gammaSlider = new QSlider(Qt::Horizontal);
-    colorSlider = new QSlider(Qt::Horizontal);
-    sharpnessSlider = new QSlider(Qt::Horizontal);
-    detailsSlider = new QSlider(Qt::Horizontal);
-    contrastSlider = new QSlider(Qt::Horizontal);
-
     customVBox_1->addWidget(customControlsCombo);
-    customVBox_1->addWidget(intensityLabel);
-    customVBox_1->addWidget(intensitySlider);
-    customVBox_1->addWidget(kernelLabel);
-    customVBox_1->addWidget(kernelSlider);
-    customVBox_1->addWidget(blockSizeLabel);
-    customVBox_1->addWidget(blockSizeSlider);
-    customVBox_1->addWidget(constantLabel);
-    customVBox_1->addWidget(constantSlider);
+
     customVBox_1->addStretch(1);
     customControlsBox_1->setLayout(customVBox_1);
 
-    customVBox_2->addWidget(gammaLabel);
-    customVBox_2->addWidget(gammaSlider);
-    customVBox_2->addWidget(colorLabel);
-    customVBox_2->addWidget(colorSlider);
-    customVBox_2->addWidget(sharpnessLabel);
-    customVBox_2->addWidget(sharpnessSlider);
-    customVBox_2->addWidget(detailsLabel);
-    customVBox_2->addWidget(detailsSlider);
-    customVBox_2->addWidget(contrastLabel);
-    customVBox_2->addWidget(contrastSlider);
     customVBox_2->addStretch(1);
     customControlsBox_2->setLayout(customVBox_2);
 
@@ -227,6 +190,23 @@ Player::Player(QWidget *parent)
 
     setLayout(layout);
 
+    sliders = new QList<QSlider*>();
+    slidersLabels = new QList<QLabel*>();
+
+    for(int i=0; i<15; ++i) {
+
+        QSlider * slider = new QSlider(Qt::Horizontal);
+        sliders->append(slider);
+        slider->hide();
+
+        QLabel *sliderLabel = new QLabel("");
+        slidersLabels->append(sliderLabel);
+        sliderLabel->hide();
+
+        customVBox_1->addWidget(sliderLabel);
+        customVBox_1->addWidget(slider);
+    }
+
     loadSettings("settings.json");
 
     if (!isPlayerAvailable()) {
@@ -260,7 +240,14 @@ void Player::processFrame(const QImage &frame)
 
 void Player::methodChanged(const QString &method)
 {
-    loadMethod(method);
+    if(method != "None") {
+        loadMethod(method);
+    } else {
+        for(int i = 0; i<sliders->length(); ++i) {
+            (*slidersLabels)[i]->hide();
+            (*sliders)[i]->hide();
+        }
+    }
 }
 
 void Player::loadSettings(const QString &filename)
@@ -294,42 +281,25 @@ void Player::loadMethod(const QString &method)
 {
     QJsonObject obj = getMethodSettings(method);
     QJsonArray params = obj["params"].toArray();
+    int index = 0;
     foreach (const QJsonValue & param, params) {
         QJsonObject obj = param.toObject();
-        adjustSettingsSlider(obj["par_name"].toString(), obj["min"].toInt(), obj["max"].toInt(), obj["default"].toInt());
+        adjustSettingsSlider(index, obj["par_name"].toString(), obj["min"].toInt(), obj["max"].toInt(), obj["default"].toInt());
+        ++index;
+    }
+    for(int i = index; i<sliders->length();++i) {
+        (*slidersLabels)[index]->hide();
+        (*sliders)[index]->hide();
     }
 }
 
-void Player::adjustSettingsSlider(const QString &sname, const int &min, const int &max, const int &def)
+void Player::adjustSettingsSlider(const int index, const QString &sname, const int &min, const int &max, const int &def)
 {
-    if(sname == "intensity") {
-        intensitySlider->setRange(min, max);
-        intensitySlider->setValue(def);
-    } else if(sname == "kernel") {
-        kernelSlider->setRange(min, max);
-        kernelSlider->setValue(def);
-    } else if(sname == "block_size") {
-        blockSizeSlider->setRange(min, max);
-        blockSizeSlider->setValue(def);
-    } else if(sname == "constant") {
-        constantSlider->setRange(min, max);
-        constantSlider->setValue(def);
-    } else if(sname == "gamma") {
-        gammaSlider->setRange(min, max);
-        gammaSlider->setValue(def);
-    } else if(sname == "color") {
-        colorSlider->setRange(min, max);
-        colorSlider->setValue(def);
-    } else if(sname == "sharpness") {
-        sharpnessSlider->setRange(min, max);
-        sharpnessSlider->setValue(def);
-    } else if(sname == "details") {
-        detailsSlider->setRange(min, max);
-        detailsSlider->setValue(def);
-    } else if(sname == "contrast") {
-        contrastSlider->setRange(min, max);
-        contrastSlider->setValue(def);
-    }
+    (*slidersLabels)[index]->setText(sname);
+    (*slidersLabels)[index]->show();
+    (*sliders)[index]->setRange(min, max);
+    (*sliders)[index]->setValue(def);
+    (*sliders)[index]->show();
 }
 
 bool Player::isPlayerAvailable() const
@@ -667,6 +637,10 @@ cv::Mat custom_1(cv::Mat frame)
 
 QImage Player::applyEffect(QImage frame, const QString method)
 {
+    if(method == "None") {
+        return frame;
+    }
+
     original = qimage_to_mat(frame);
 
     if(method == "Detail1") {

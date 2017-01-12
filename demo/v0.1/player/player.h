@@ -119,7 +119,7 @@ private:
     void updateDurationInfo(qint64 currentInfo);
     void loadSettings(const QString &filename);
     void loadMethod(const QString &method);
-    void adjustSettingsSlider(const QString &sname, const int &min, const int &max, const int &def);
+    void adjustSettingsSlider(const int index, const QString &sname, const int &min, const int &max, const int &def);
     const QJsonObject getMethodSettings(const QString &method);
 
     QMediaPlayer *player;
@@ -132,16 +132,6 @@ private:
     QPushButton *colorButton;
     QDialog *colorDialog;
     QComboBox *customControlsCombo;
-
-    QSlider *intensitySlider;
-    QSlider *kernelSlider;
-    QSlider *blockSizeSlider;
-    QSlider *constantSlider;
-    QSlider *gammaSlider;
-    QSlider *colorSlider;
-    QSlider *sharpnessSlider;
-    QSlider *detailsSlider;
-    QSlider *contrastSlider;
 
     QVideoProbe *probe;
     QGraphicsView *graphicsView;
@@ -161,6 +151,9 @@ private:
 
     cv::Mat original;
     cv::Mat applied;
+
+    QList<QSlider*> *sliders;
+    QList<QLabel*> *slidersLabels;
 };
 
 #endif // PLAYER_H
