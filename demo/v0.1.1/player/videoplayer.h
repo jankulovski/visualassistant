@@ -40,9 +40,10 @@ private slots:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
     void setPosition(int position);
-    void processFrame(const QImage &frame);
+    void processFrame(QImage frame);
     void methodChanged(const QString &method);
     void opticsChanged(const QString &optic);
+    void updatePreProcessNeeded();
 
 private:
     QMediaPlayer mediaPlayer;
@@ -64,7 +65,8 @@ private:
 
     QImage Mat2QImage(cv::Mat const& src);
     QImage applyEffect(QImage frame, const QString method);
-    QImage applyFrameEffect(QImage frame, const QString &method);
+    cv::Mat postProcessFrame(cv::Mat frame, const QString &method);
+    cv::Mat preProcessFrame(cv::Mat frame, const QString &method);
 
     cv::Mat QImage2Mat(QImage const& src);
     cv::Mat original;
@@ -83,6 +85,11 @@ private:
 
     const QJsonObject getMethodSettings(const QString &method);
     const QJsonObject getOpticsSettings(const QString &method);
+
+    int getMSetting(const QString &name);
+    int getOSetting(const QString &name);
+
+    bool isPreProcessNeeded = false;
 };
 
 #endif

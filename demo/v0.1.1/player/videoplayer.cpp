@@ -8,6 +8,63 @@ public:
     InvalidMethodException *clone() const { return new InvalidMethodException(*this); }
 };
 
+class InvalidSettingException : public QException
+{
+public:
+    void raise() const { throw *this; }
+    InvalidSettingException *clone() const { return new InvalidSettingException(*this); }
+};
+
+inline QImage mat_to_qimage(cv::Mat &mat, QImage::Format format)
+{
+    return QImage(mat.data, mat.cols, mat.rows,
+                  static_cast<int>(mat.step), format);
+}
+
+inline cv::Mat qimage_to_mat(QImage &img, int format)
+{
+    return cv::Mat(img.height(), img.width(),
+                   format, img.bits(), img.bytesPerLine());
+}
+
+QImage mat_to_qimage(cv::Mat &mat)
+{
+    if(!mat.empty()){
+        switch(mat.type()){
+        case CV_8UC3: return mat_to_qimage(mat, QImage::Format_RGB888);
+        case CV_8U: return mat_to_qimage(mat, QImage::Format_Indexed8);
+        case CV_8UC4: return mat_to_qimage(mat, QImage::Format_ARGB32);
+        }
+    }
+    return {};
+}
+
+cv::Mat qimage_to_mat(QImage &img)
+{
+    if(img.isNull()){
+        return cv::Mat();
+    }
+
+    switch (img.format()) {
+    case QImage::Format_RGB888:{
+        auto result = qimage_to_mat(img, CV_8UC3);
+        cv::cvtColor(result, result, CV_RGB2BGR);
+        return result;
+    }
+    case QImage::Format_Indexed8:{
+        return qimage_to_mat(img, CV_8U);
+    }
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32:
+    case QImage::Format_ARGB32_Premultiplied:{
+        return qimage_to_mat(img, CV_8UC4);
+    }
+    default:
+        break;
+    }
+    return {};
+}
+
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
     , mediaPlayer(0, QMediaPlayer::VideoSurface)
@@ -152,9 +209,20 @@ void VideoPlayer::setPosition(int position)
     mediaPlayer.setPosition(position);
 }
 
-void VideoPlayer::processFrame(const QImage &frame)
+void VideoPlayer::processFrame(QImage frame)
 {
-    QPixmap image = QPixmap::fromImage(applyFrameEffect(frame, methodsControlsCombo->currentText()));
+    applied = qimage_to_mat(frame);
+
+    if(isPreProcessNeeded && opticsControlsCombo->currentText() != "None") {
+        applied = preProcessFrame(applied, opticsControlsCombo->currentText());
+    }
+
+    if(methodsControlsCombo->currentText() != "None") {
+        applied = postProcessFrame(applied, methodsControlsCombo->currentText());
+    }
+
+    QPixmap image = QPixmap::fromImage(mat_to_qimage(applied));
+
     graphicsView->scene()->clear();
     scene->addPixmap(image);
     scene->setSceneRect(image.rect());
@@ -243,10 +311,39 @@ void VideoPlayer::loadMethodSettings(const QString &method)
     } catch(InvalidMethodException e) {}
 }
 
+int VideoPlayer::getMSetting(const QString &name)
+{
+    if(methodSettingsUi.contains(name)) {
+        return (*methodSettingsUi[name]).value();
+    }
+    return 0;
+}
+
+int VideoPlayer::getOSetting(const QString &name)
+{
+    if(opticalSettingsUi.contains(name)) {
+        return (*opticalSettingsUi[name]).value();
+    }
+    return 0;
+}
+
+void VideoPlayer::updatePreProcessNeeded()
+{
+    for(auto e : opticalSettingsUi.keys())
+    {
+        if( (*opticalSettingsUi.value(e)).value() != (*opticalSettingsUi.value(e)).minimum() ) {
+            isPreProcessNeeded = true;
+            return;
+        }
+    }
+    isPreProcessNeeded = false;
+}
+
 void VideoPlayer::loadOpticSettings(const QString &method)
 {
     if(method == "None") {
         cleanSettingsLayout(opticalSettingsVBox_1);
+        updatePreProcessNeeded();
         return;
     }
 
@@ -263,6 +360,8 @@ void VideoPlayer::loadOpticSettings(const QString &method)
             slider->setObjectName(obj["par_name"].toString());
             opticalSettingsUi[obj["par_name"].toString()] = slider;
 
+            connect(slider, SIGNAL(valueChanged(int)), this, SLOT(updatePreProcessNeeded()));
+
             QLabel *sliderLabel = new QLabel(obj["par_name"].toString());
 
             opticalSettingsVBox_1->addWidget(sliderLabel);
@@ -270,6 +369,8 @@ void VideoPlayer::loadOpticSettings(const QString &method)
 
             adjustOpticalSettingsSlider(obj["par_name"].toString(), obj["min"].toInt(), obj["max"].toInt(), obj["default"].toInt());
         }
+
+        updatePreProcessNeeded();
 
     } catch(InvalidMethodException e) {}
 }
@@ -322,56 +423,6 @@ void VideoPlayer::opticsChanged(const QString &optic)
     loadOpticSettings(optic);
 }
 
-inline QImage mat_to_qimage(cv::Mat &mat, QImage::Format format)
-{
-    return QImage(mat.data, mat.cols, mat.rows,
-                  static_cast<int>(mat.step), format);
-}
-
-inline cv::Mat qimage_to_mat(QImage &img, int format)
-{
-    return cv::Mat(img.height(), img.width(),
-                   format, img.bits(), img.bytesPerLine());
-}
-
-QImage mat_to_qimage(cv::Mat &mat)
-{
-    if(!mat.empty()){
-        switch(mat.type()){
-        case CV_8UC3: return mat_to_qimage(mat, QImage::Format_RGB888);
-        case CV_8U: return mat_to_qimage(mat, QImage::Format_Indexed8);
-        case CV_8UC4: return mat_to_qimage(mat, QImage::Format_ARGB32);
-        }
-    }
-    return {};
-}
-
-cv::Mat qimage_to_mat(QImage &img)
-{
-    if(img.isNull()){
-        return cv::Mat();
-    }
-
-    switch (img.format()) {
-    case QImage::Format_RGB888:{
-        auto result = qimage_to_mat(img, CV_8UC3);
-        cv::cvtColor(result, result, CV_RGB2BGR);
-        return result;
-    }
-    case QImage::Format_Indexed8:{
-        return qimage_to_mat(img, CV_8U);
-    }
-    case QImage::Format_RGB32:
-    case QImage::Format_ARGB32:
-    case QImage::Format_ARGB32_Premultiplied:{
-        return qimage_to_mat(img, CV_8UC4);
-    }
-    default:
-        break;
-    }
-    return {};
-}
-
 cv::Mat lut(1, 256, CV_8U);
 
 void calculate_lut(int intensity) {
@@ -411,20 +462,23 @@ cv::Mat custom_1(cv::Mat frame)
     return frame;
 }
 
-QImage VideoPlayer::applyFrameEffect(QImage frame, const QString &method)
+cv::Mat VideoPlayer::preProcessFrame(cv::Mat frame, const QString &method)
 {
-    if(method == "none") {
-        return frame;
-    }
-
-    original = qimage_to_mat(frame);
-
-    if(method == "Detail1") {
-        applied = custom_1(original);
+    if(method == "SharpContrast1") {
+        return custom_1(frame);
     }
     else {
-        applied = original;
+        return frame;
     }
-
-    return mat_to_qimage(applied);
 }
+
+cv::Mat VideoPlayer::postProcessFrame(cv::Mat frame, const QString &method)
+{
+    if(method == "NeonEdge1") {
+        return custom_1(frame);
+    }
+    else {
+        return frame;
+    }
+}
+
