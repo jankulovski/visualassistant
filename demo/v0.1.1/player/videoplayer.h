@@ -42,6 +42,7 @@ private slots:
     void setPosition(int position);
     void processFrame(const QImage &frame);
     void methodChanged(const QString &method);
+    void opticsChanged(const QString &optic);
 
 private:
     QMediaPlayer mediaPlayer;
@@ -53,8 +54,10 @@ private:
     QGraphicsView *graphicsView;
 
     QComboBox *methodsControlsCombo;
+    QComboBox *opticsControlsCombo;
 
     QJsonArray settings;
+    QJsonArray settingsOptics;
 
     QMap<QString, QSlider*> methodSettingsUi;
     QMap<QString, QSlider*> opticalSettingsUi;
@@ -67,13 +70,19 @@ private:
     cv::Mat original;
     cv::Mat applied;
 
+    QVBoxLayout *methodSettingsVBox_1;
+    QVBoxLayout *opticalSettingsVBox_1;
+
     void loadSettings(const QString &filename);
+    void loadSettingsOptics(const QString &filename);
     void loadMethodSettings(const QString &method);
+    void loadOpticSettings(const QString &method);
     void adjustMethodSettingsSlider(const QString &sname, const int &min, const int &max, const int &def);
+    void adjustOpticalSettingsSlider(const QString &sname, const int &min, const int &max, const int &def);
+    void cleanSettingsLayout(QLayout* layout);
 
     const QJsonObject getMethodSettings(const QString &method);
-
-
+    const QJsonObject getOpticsSettings(const QString &method);
 };
 
 #endif
