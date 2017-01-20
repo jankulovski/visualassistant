@@ -4,7 +4,9 @@ TARGET = player
 QT += multimedia multimediawidgets
 
 HEADERS   += videoplayer.h \
-    videosurface.h
+    videosurface.h \
+    sharpcontrast.h \
+    neonedge.h
 
 SOURCES   += main.cpp \
              videoplayer.cpp \

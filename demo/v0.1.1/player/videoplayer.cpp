@@ -1,5 +1,7 @@
 #include "videoplayer.h"
 #include "videosurface.h"
+#include "sharpcontrast.h"
+#include "neonedge.h"
 
 class InvalidMethodException : public QException
 {
@@ -423,49 +425,11 @@ void VideoPlayer::opticsChanged(const QString &optic)
     loadOpticSettings(optic);
 }
 
-cv::Mat lut(1, 256, CV_8U);
-
-void calculate_lut(int intensity) {
-    uchar* p = lut.ptr();
-    for ( int i = 0; i < 256; ++i)
-        p[i] = cv::saturate_cast<uchar>(intensity * 0.01 * i);
-}
-
-cv::Mat custom_1(cv::Mat frame)
-{
-    cv::Mat framegray;
-
-    int kernel = 3;
-    int windowSize = 2;
-    int constant = 2;
-    int median = 3;
-    int intensity = 80;
-
-    (windowSize > 3 && windowSize % 2 == 0) ? windowSize++ : windowSize < 3 ? windowSize = 3 : windowSize;
-    (kernel > 3 && kernel % 2 == 0) ? kernel++ : kernel < 3 ? kernel = 3 : kernel;
-    (median > 3 && median % 2 == 0) ? median++ : median < 3 ? median = 3 : median;
-
-    calculate_lut(intensity);
-
-    cvtColor(frame, framegray, cv::COLOR_BGR2GRAY );
-
-    GaussianBlur(framegray, framegray, cv::Size(kernel, kernel), 0, 0, cv::BORDER_DEFAULT);
-    adaptiveThreshold(framegray, framegray, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV,
-                      windowSize, constant);
-
-    cv::Mat tmp;
-    frame.copyTo(tmp, framegray);
-    cv::LUT(tmp, lut, tmp);
-    frame.setTo(cv::Scalar(0, 0, 0), framegray);
-    add(frame, tmp, frame);
-
-    return frame;
-}
-
 cv::Mat VideoPlayer::preProcessFrame(cv::Mat frame, const QString &method)
 {
-    if(method == "SharpContrast1") {
-        return custom_1(frame);
+    if(method == "SharpContrast") {
+        return SharpContrast(frame, getOSetting("DarkLight"), getOSetting("Intensity"),
+                             getOSetting("Vibrance"), getOSetting("Sharpness"), getOSetting("Contrast"));
     }
     else {
         return frame;
@@ -474,8 +438,9 @@ cv::Mat VideoPlayer::preProcessFrame(cv::Mat frame, const QString &method)
 
 cv::Mat VideoPlayer::postProcessFrame(cv::Mat frame, const QString &method)
 {
-    if(method == "NeonEdge1") {
-        return custom_1(frame);
+    if(method == "NeonEdge") {
+        return NeonEdge(frame, getMSetting("intensity"), getMSetting("kernel"), getMSetting("weight"),
+                        getMSetting("scale"), getMSetting("cut"), getMSetting("hue"));
     }
     else {
         return frame;
