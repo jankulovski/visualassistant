@@ -214,23 +214,25 @@ void VideoPlayer::setPosition(int position)
 
 void VideoPlayer::processFrame(QImage frame)
 {
-    applied = qimage_to_mat(frame);
+    try {
+        applied = qimage_to_mat(frame);
 
-    if(isPreProcessNeeded && opticsControlsCombo->currentText() != "None") {
-        applied = preProcessFrame(applied, opticsControlsCombo->currentText());
-    }
+        if(isPreProcessNeeded && opticsControlsCombo->currentText() != "None") {
+            applied = preProcessFrame(applied, opticsControlsCombo->currentText());
+        }
 
-    if(methodsControlsCombo->currentText() != "None") {
-        applied = postProcessFrame(applied, methodsControlsCombo->currentText());
-    }
+        if(methodsControlsCombo->currentText() != "None") {
+            applied = postProcessFrame(applied, methodsControlsCombo->currentText());
+        }
 
-    QPixmap image = QPixmap::fromImage(mat_to_qimage(applied));
+        QPixmap image = QPixmap::fromImage(mat_to_qimage(applied));
 
-    graphicsView->scene()->clear();
-    scene->addPixmap(image);
-    scene->setSceneRect(image.rect());
-    graphicsView->setScene(scene);
-    graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+        graphicsView->scene()->clear();
+        scene->addPixmap(image);
+        scene->setSceneRect(image.rect());
+        graphicsView->setScene(scene);
+        graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+    } catch(Exception e) {}
 }
 
 void VideoPlayer::loadSettings(const QString &filename)
