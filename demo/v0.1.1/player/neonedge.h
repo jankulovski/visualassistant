@@ -51,51 +51,46 @@ void calculate_sobel(Mat& gray, Mat& sobel, int scale, double weight,int bold) {
     addWeighted( sobel_x, weight, sobel_y, weight, 0, sobel );
 }
 
-Mat EdgeAugumentation(Mat& src,int kernel,int scale, double weight_d, int bold, int cut, int intensity  ) {
+Mat EdgeAugumentation(Mat& src,int kernel,int scale, double weight_d, int bold, int cut, int intensity) {
 
-      // Matrix Initialisation
-      Mat  gray, sobel, edges, color_edges,dst;
+    // Matrix Initialisation
+    Mat  gray, sobel, edges, color_edges,dst;
 
-      cvtColor(src, gray, COLOR_BGR2GRAY );
-      GaussianBlur(gray, gray, Size(kernel, kernel), 0, 0, BORDER_DEFAULT);
-      calculate_sobel(gray, sobel, scale, weight_d,bold);
-      cv::threshold(sobel, sobel, cut, 255, THRESH_TOZERO);
-      //Sobel Type 2 bolj izraziti robovi
-      cvtColor(sobel, edges, COLOR_GRAY2BGR );
-      LUT(edges, lut, color_edges);
-      src.copyTo(edges, sobel);
+    cvtColor(src, gray, COLOR_BGR2GRAY );
+    GaussianBlur(gray, gray, Size(kernel, kernel), 0, 0, BORDER_DEFAULT);
+    calculate_sobel(gray, sobel, scale, weight_d,bold);
+    cv::threshold(sobel, sobel, cut, 255, THRESH_TOZERO);
+    //Sobel Type 2 bolj izraziti robovi
+    cvtColor(sobel, edges, COLOR_GRAY2BGR );
+    LUT(edges, lut, color_edges);
+    src.copyTo(edges, sobel);
+    src.setTo(Scalar(0, 0, 0), sobel);
+    addWeighted( edges, (intensity * 0.01), color_edges, (1 - (intensity * 0.01)), 0, edges );
+    add(src, edges, dst);
 
-      src.setTo(Scalar(0, 0, 0), sobel);
-      addWeighted( edges, (intensity * 0.01), color_edges, (1 - (intensity * 0.01)), 0, edges );
-      add(src, edges, dst);
-
-  return dst;
+    return dst;
 }
 
 cv::Mat NeonEdge(cv::Mat frame, int intensity=46, int kernel=9, int weight=32, int scale=4, int cut=100, int hue=42) {
 
-    Mat final;
-
     double weight_d;
-    int bold=1;
-    int sat=255;
-    int val=255;
+    int bold = 1;
+
+    int sat = 255;
+    int val = 255;
 
     Scalar color;
 
-    ///Method parameter treatment
     (kernel > 3 && kernel % 2 == 0) ? kernel++ : kernel < 3 ? kernel = 3 : kernel;
     (bold > 3 && bold % 2 == 0) ? bold++ : bold < 3 ? bold = 1 : bold;
     weight_d = weight * 0.05;
     color = get_rgb_from_hsv(hue, sat, val,true);
-    if (intensity != -1 || hue != -1) {
-        calculate_lut(intensity, color);
-    }
 
-    // Increase Brightness and Natural Shadows
-    final = EdgeAugumentation(frame,  kernel, scale,  weight_d,  bold,  cut,  intensity);
+//    if (intensity_prev != intensity || hue_prev != hue) {
+//        calculate_lut(intensity, color);
+//    }
 
-    return final;
+    return EdgeAugumentation(frame,  kernel, scale,  weight_d,  bold,  cut,  intensity);
 }
 
 

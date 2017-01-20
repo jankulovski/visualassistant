@@ -129,7 +129,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     methodsControlsCombo->addItem("None");
 
     opticsControlsCombo = new QComboBox(this);
-    opticsControlsCombo->addItem("None");
+//    opticsControlsCombo->addItem("None");
 
     methodSettingsControlsBox_1->setMinimumSize(100, 200);
     opticalSettingsControlsBox_2->setMinimumSize(100, 200);
@@ -155,6 +155,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     loadSettings("/Users/kiko/Desktop/visualassistant/demo/v0.1.1/player/MethodSettings.json");
     loadSettingsOptics("/Users/kiko/Desktop/visualassistant/demo/v0.1.1/player/OpticalSettings.json");
+
 }
 
 VideoPlayer::~VideoPlayer()
@@ -262,6 +263,7 @@ void VideoPlayer::loadSettingsOptics(const QString &filename)
         opticsControlsCombo->addItem(obj["name"].toString());
     }
     opticsControlsCombo->setCurrentIndex(0);
+    updatePreProcessNeeded();
 }
 
 void VideoPlayer::cleanSettingsLayout(QLayout* layout)
