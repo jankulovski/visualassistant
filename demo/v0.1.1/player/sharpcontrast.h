@@ -1,7 +1,7 @@
 #ifndef SHARPCONTRAST_H
 #define SHARPCONTRAST_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv/cv.hpp>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>

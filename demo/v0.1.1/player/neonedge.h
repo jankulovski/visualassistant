@@ -1,7 +1,7 @@
 #ifndef NEONEDGE_H
 #define NEONEDGE_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv/cv.hpp>
 
 using namespace std;
 using namespace cv;
@@ -85,10 +85,7 @@ cv::Mat NeonEdge(cv::Mat frame, int intensity=46, int kernel=9, int weight=32, i
     (bold > 3 && bold % 2 == 0) ? bold++ : bold < 3 ? bold = 1 : bold;
     weight_d = weight * 0.05;
     color = get_rgb_from_hsv(hue, sat, val,true);
-
-//    if (intensity_prev != intensity || hue_prev != hue) {
-//        calculate_lut(intensity, color);
-//    }
+    calculate_lut(intensity, color);
 
     return EdgeAugumentation(frame,  kernel, scale,  weight_d,  bold,  cut,  intensity);
 }
