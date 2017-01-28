@@ -30,13 +30,9 @@ public:
 
     QSize sizeHint() const { return QSize(800, 600); }
 
-protected:
-    void keyPressEvent(QKeyEvent *event);
-
 public slots:
     void openFile();
     void play();
-    void fullScreen();
 
 private slots:
     void mediaStateChanged(QMediaPlayer::State state);

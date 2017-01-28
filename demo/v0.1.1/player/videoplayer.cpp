@@ -112,7 +112,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     QBoxLayout *layout = new QVBoxLayout;
 
-    this->setFixedSize(600, 300);
+    this->setFixedSize(550, 300);
 
 //    layout->addWidget(graphicsView);
 
@@ -165,6 +165,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     set1lay->addWidget(positionSlider);
     set1lay->addWidget(opticsControlsCombo);
     set1lay->addWidget(methodsControlsCombo);
+    set1box->setMaximumWidth(130);
 
     controlLayout->addWidget(set1box);
 
@@ -193,28 +194,6 @@ void VideoPlayer::openFile()
     if (!fileName.isEmpty()) {
         mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
         playButton->setEnabled(true);
-    }
-}
-
-void VideoPlayer::keyPressEvent(QKeyEvent* event)
-{
-    if (event->key() == Qt::Key_Escape) {
-        if(framePlane->isFullScreen()) {
-//            fullScreen();
-        }
-    }
-    QWidget::keyPressEvent(event);
-}
-
-void VideoPlayer::fullScreen()
-{
-    if(framePlane->isFullScreen()) {
-        framePlane->showNormal();
-        framePlane->showMinimized();
-    } else {
-        framePlane->setWindowFlags(Qt::Window);
-        framePlane->setScaledContents(true);
-        framePlane->showFullScreen();
     }
 }
 
@@ -270,9 +249,8 @@ void VideoPlayer::processFrame(QImage frame)
             applied = postProcessFrame(applied, methodsControlsCombo->currentText());
         }
 
-        QPixmap image = QPixmap::fromImage(mat_to_qimage(applied));
         framePlane->clear();
-        framePlane->setPixmap(image.scaled(framePlane->width(), framePlane->height()));
+        framePlane->setPixmap(QPixmap::fromImage(mat_to_qimage(applied)).scaled(framePlane->width(), framePlane->height()));
 
 //        graphicsView->scene()->clear();
 //        scene->addPixmap(image);
