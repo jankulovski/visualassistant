@@ -33,6 +33,7 @@ public:
 public slots:
     void openFile();
     void play();
+    void fullScreen();
 
 private slots:
     void mediaStateChanged(QMediaPlayer::State state);
@@ -89,6 +90,8 @@ private:
     int getOSetting(const QString &name);
 
     bool isPreProcessNeeded = false;
+
+    QLabel *framePlane;
 };
 
 #endif

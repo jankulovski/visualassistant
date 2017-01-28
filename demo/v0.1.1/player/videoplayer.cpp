@@ -70,25 +70,29 @@ cv::Mat qimage_to_mat(QImage &img)
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
     , mediaPlayer(0, QMediaPlayer::VideoSurface)
-    , videoItem(0)
+//    , videoItem(0)
     , playButton(0)
     , positionSlider(0)
 {
-    videoItem = new QGraphicsVideoItem;
-    videoItem->setSize(QSizeF(640, 480));
+//    videoItem = new QGraphicsVideoItem;
+//    videoItem->setSize(QSizeF(640, 480));
 
-    scene = new QGraphicsScene(this);
-    graphicsView = new QGraphicsView(scene);
+//    scene = new QGraphicsScene(this);
 
-    graphicsView->setOptimizationFlag(QGraphicsView::DontClipPainter);
-    graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
-    graphicsView->setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing);
-    graphicsView->setCacheMode(QGraphicsView::CacheBackground);
+//    graphicsView = new QGraphicsView(scene);
 
-    scene->addItem(videoItem);
+//    graphicsView->setOptimizationFlag(QGraphicsView::DontClipPainter);
+//    graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
+//    graphicsView->setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing);
+//    graphicsView->setCacheMode(QGraphicsView::CacheBackground);
+
+//    scene->addItem(videoItem);
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
     connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
+
+    QAbstractButton *fsButton = new QPushButton(tr("FS"));
+    connect(fsButton, SIGNAL(clicked()), this, SLOT(fullScreen()));
 
     playButton = new QPushButton;
     playButton->setEnabled(false);
@@ -107,10 +111,18 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     controlLayout->setMargin(0);
     controlLayout->addWidget(openButton);
     controlLayout->addWidget(playButton);
+    controlLayout->addWidget(fsButton);
     controlLayout->addWidget(positionSlider);
 
     QBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(graphicsView);
+
+//    layout->addWidget(graphicsView);
+
+    framePlane = new QLabel();
+    framePlane->setMinimumSize(640, 480);
+    framePlane->adjustSize();
+    layout->addWidget(framePlane);
+
     layout->addLayout(controlLayout);
 
     setLayout(layout);
@@ -129,7 +141,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     methodsControlsCombo->addItem("None");
 
     opticsControlsCombo = new QComboBox(this);
-//    opticsControlsCombo->addItem("None");
+    opticsControlsCombo->addItem("None");
 
     methodSettingsControlsBox_1->setMinimumSize(100, 200);
     opticalSettingsControlsBox_2->setMinimumSize(100, 200);
@@ -162,7 +174,6 @@ VideoPlayer::~VideoPlayer()
 {
 }
 
-
 void VideoPlayer::openFile()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Movie"),QDir::homePath());
@@ -170,6 +181,17 @@ void VideoPlayer::openFile()
     if (!fileName.isEmpty()) {
         mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
         playButton->setEnabled(true);
+    }
+}
+
+void VideoPlayer::fullScreen()
+{
+    if(framePlane->isFullScreen()) {
+        framePlane->showNormal();
+    } else {
+        framePlane->setWindowFlags(Qt::Window);
+        framePlane->setScaledContents(true);
+        framePlane->showFullScreen();
     }
 }
 
@@ -217,21 +239,24 @@ void VideoPlayer::processFrame(QImage frame)
     try {
         applied = qimage_to_mat(frame);
 
-        if(isPreProcessNeeded && opticsControlsCombo->currentText() != "None") {
+        if(isPreProcessNeeded && opticsControlsCombo->currentIndex() != 0) {
             applied = preProcessFrame(applied, opticsControlsCombo->currentText());
         }
 
-        if(methodsControlsCombo->currentText() != "None") {
+        if(methodsControlsCombo->currentIndex() != 0) {
             applied = postProcessFrame(applied, methodsControlsCombo->currentText());
         }
 
         QPixmap image = QPixmap::fromImage(mat_to_qimage(applied));
+        framePlane->clear();
+        framePlane->setPixmap(image.scaled(framePlane->width(), framePlane->height()));
 
-        graphicsView->scene()->clear();
-        scene->addPixmap(image);
-        scene->setSceneRect(image.rect());
-        graphicsView->setScene(scene);
-        graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+//        graphicsView->scene()->clear();
+//        scene->addPixmap(image);
+//        scene->setSceneRect(image.rect());
+//        graphicsView->setScene(scene);
+//        graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+
     } catch(Exception e) {}
 }
 
@@ -270,21 +295,23 @@ void VideoPlayer::loadSettingsOptics(const QString &filename)
 
 void VideoPlayer::cleanSettingsLayout(QLayout* layout)
 {
-    QLayoutItem* child;
-    while(layout->count()!=0)
-    {
-        child = layout->takeAt(0);
-        if(child->layout() != 0)
+    try {
+        QLayoutItem* child;
+        while(layout->count()!=0)
         {
-            cleanSettingsLayout(child->layout());
-        }
-        else if(child->widget() != 0)
-        {
-            delete child->widget();
-        }
+            child = layout->takeAt(0);
+            if(child->layout() != 0)
+            {
+                cleanSettingsLayout(child->layout());
+            }
+            else if(child->widget() != 0)
+            {
+                delete child->widget();
+            }
 
-        delete child;
-    }
+            delete child;
+        }
+    } catch (Exception e) {}
 }
 
 void VideoPlayer::loadMethodSettings(const QString &method)
@@ -299,6 +326,7 @@ void VideoPlayer::loadMethodSettings(const QString &method)
         QJsonArray params = obj["params"].toArray();
 
         cleanSettingsLayout(methodSettingsVBox_1);
+        methodSettingsUi.clear();
 
         foreach (const QJsonValue & param, params) {
             QJsonObject obj = param.toObject();
@@ -317,34 +345,6 @@ void VideoPlayer::loadMethodSettings(const QString &method)
     } catch(InvalidMethodException e) {}
 }
 
-int VideoPlayer::getMSetting(const QString &name)
-{
-    if(methodSettingsUi.contains(name)) {
-        return (*methodSettingsUi[name]).value();
-    }
-    return 0;
-}
-
-int VideoPlayer::getOSetting(const QString &name)
-{
-    if(opticalSettingsUi.contains(name)) {
-        return (*opticalSettingsUi[name]).value();
-    }
-    return 0;
-}
-
-void VideoPlayer::updatePreProcessNeeded()
-{
-    for(auto e : opticalSettingsUi.keys())
-    {
-        if( (*opticalSettingsUi.value(e)).value() != (*opticalSettingsUi.value(e)).minimum() ) {
-            isPreProcessNeeded = true;
-            return;
-        }
-    }
-    isPreProcessNeeded = false;
-}
-
 void VideoPlayer::loadOpticSettings(const QString &method)
 {
     if(method == "None") {
@@ -358,6 +358,7 @@ void VideoPlayer::loadOpticSettings(const QString &method)
         QJsonArray params = obj["params"].toArray();
 
         cleanSettingsLayout(opticalSettingsVBox_1);
+        opticalSettingsUi.clear();
 
         foreach (const QJsonValue & param, params) {
             QJsonObject obj = param.toObject();
@@ -379,6 +380,39 @@ void VideoPlayer::loadOpticSettings(const QString &method)
         updatePreProcessNeeded();
 
     } catch(InvalidMethodException e) {}
+}
+
+int VideoPlayer::getMSetting(const QString &name)
+{
+    if(methodSettingsUi.contains(name)) {
+        return (*methodSettingsUi[name]).value();
+    }
+    return 0;
+}
+
+int VideoPlayer::getOSetting(const QString &name)
+{
+    if(opticalSettingsUi.contains(name)) {
+        return (*opticalSettingsUi[name]).value();
+    }
+    return 0;
+}
+
+void VideoPlayer::updatePreProcessNeeded()
+{
+    if (opticsControlsCombo->currentIndex() == 0) {
+        isPreProcessNeeded = false;
+        return;
+    }
+
+    for(auto e : opticalSettingsUi.keys())
+    {
+        if( (*opticalSettingsUi.value(e)).value() != (*opticalSettingsUi.value(e)).minimum() ) {
+            isPreProcessNeeded = true;
+            return;
+        }
+    }
+    isPreProcessNeeded = false;
 }
 
 void VideoPlayer::adjustMethodSettingsSlider(const QString &sname, const int &min, const int &max, const int &def)
