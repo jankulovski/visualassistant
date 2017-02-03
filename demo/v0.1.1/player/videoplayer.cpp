@@ -59,7 +59,9 @@ cv::Mat qimage_to_mat(QImage &img)
     case QImage::Format_RGB32:
     case QImage::Format_ARGB32:
     case QImage::Format_ARGB32_Premultiplied:{
-        return qimage_to_mat(img, CV_8UC4);
+        auto result = qimage_to_mat(img, CV_8UC4);
+        cv::cvtColor(result, result, cv::COLOR_RGBA2BGR);
+        return result;
     }
     default:
         break;
@@ -95,8 +97,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     playButton->setEnabled(false);
     playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(playButton, SIGNAL(clicked()),
-            this, SLOT(play()));
+    connect(playButton, SIGNAL(clicked()), this, SLOT(play()));
 
     positionSlider = new QSlider(Qt::Horizontal);
     positionSlider->setRange(0, 0);

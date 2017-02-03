@@ -12,9 +12,9 @@ SOURCES   += main.cpp \
              videoplayer.cpp \
     videosurface.cpp
 
-INSTALLS += target
-
 QT+=widgets
+
+CONFIG += c++11
 
 INCLUDEPATH += /usr/local/include/opencv
 INCLUDEPATH += /usr/local/include/opencv2
