@@ -125,6 +125,8 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     framePlane->showNormal();
     framePlane->setFocus();
 
+    this->setWindowFlags(Qt::WindowStaysOnTopHint);
+
     layout->addWidget(framePlane);
     layout->addLayout(controlLayout);
 
