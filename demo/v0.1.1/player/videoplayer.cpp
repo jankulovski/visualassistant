@@ -72,23 +72,9 @@ cv::Mat qimage_to_mat(QImage &img)
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
     , mediaPlayer(0, QMediaPlayer::VideoSurface)
-//    , videoItem(0)
     , playButton(0)
     , positionSlider(0)
 {
-//    videoItem = new QGraphicsVideoItem;
-//    videoItem->setSize(QSizeF(640, 480));
-
-//    scene = new QGraphicsScene(this);
-
-//    graphicsView = new QGraphicsView(scene);
-
-//    graphicsView->setOptimizationFlag(QGraphicsView::DontClipPainter);
-//    graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
-//    graphicsView->setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing);
-//    graphicsView->setCacheMode(QGraphicsView::CacheBackground);
-
-//    scene->addItem(videoItem);
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
     connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
@@ -107,26 +93,14 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
-//    controlLayout->addWidget(openButton);
-//    controlLayout->addWidget(playButton);
-//    controlLayout->addWidget(positionSlider);
 
     QBoxLayout *layout = new QVBoxLayout;
-
-    this->setFixedSize(550, 300);
-
-//    layout->addWidget(graphicsView);
 
     framePlane = new QLabel(this);
     framePlane->setMinimumSize(640, 480);
     framePlane->setAlignment(Qt::AlignCenter);
-    framePlane->adjustSize();
-    framePlane->setWindowFlags(Qt::Window);
-    framePlane->showNormal();
-    framePlane->setFocus();
 
     layout->addWidget(framePlane);
-    layout->addLayout(controlLayout);
 
     setLayout(layout);
 
@@ -146,13 +120,10 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     opticsControlsCombo = new QComboBox(this);
     opticsControlsCombo->addItem("None");
 
-//    methodSettingsControlsBox_1->setMinimumSize(100, 200);
-//    opticalSettingsControlsBox_2->setMinimumSize(100, 200);
+    methodSettingsControlsBox_1->setMinimumSize(100, 200);
+    opticalSettingsControlsBox_2->setMinimumSize(100, 200);
 
-//    methodSettingsVBox_1->addStretch(1);
     methodSettingsControlsBox_1->setLayout(methodSettingsVBox_1);
-
-//    opticalSettingsVBox_1->addStretch(1);
     opticalSettingsControlsBox_2->setLayout(opticalSettingsVBox_1);
 
     QGroupBox *set1box = new QGroupBox(this);
@@ -162,16 +133,20 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     set1lay->addWidget(openButton);
     set1lay->addWidget(playButton);
-
     set1lay->addWidget(positionSlider);
     set1lay->addWidget(opticsControlsCombo);
     set1lay->addWidget(methodsControlsCombo);
     set1box->setMaximumWidth(130);
 
     controlLayout->addWidget(set1box);
-
     controlLayout->addWidget(opticalSettingsControlsBox_2,1);
     controlLayout->addWidget(methodSettingsControlsBox_1,1);
+
+    QWidget *controlsWidget = new QWidget();
+    controlsWidget->setLayout(controlLayout);
+    controlsWidget->show();
+    controlsWidget->raise();
+    controlsWidget->setFocus();
 
     VideoSurface* surface = new VideoSurface(this);
     mediaPlayer.setVideoOutput(surface);
@@ -180,12 +155,8 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     connect(methodsControlsCombo, SIGNAL(currentTextChanged(QString)), this, SLOT(methodChanged(QString)));
     connect(opticsControlsCombo, SIGNAL(currentTextChanged(QString)), this, SLOT(opticsChanged(QString)));
 
-    loadSettings("/Users/kiko/Desktop/visualassistant/demo/v0.1.1/player/MethodSettings.json");
-    loadSettingsOptics("/Users/kiko/Desktop/visualassistant/demo/v0.1.1/player/OpticalSettings.json");
-
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
-    show();
-    activateWindow();
+    loadSettings("MethodSettings.json");
+    loadSettingsOptics("OpticalSettings.json");
 }
 
 VideoPlayer::~VideoPlayer()
