@@ -125,8 +125,6 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     framePlane->showNormal();
     framePlane->setFocus();
 
-    this->setWindowFlags(Qt::WindowStaysOnTopHint);
-
     layout->addWidget(framePlane);
     layout->addLayout(controlLayout);
 
@@ -184,6 +182,10 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     loadSettings("/Users/kiko/Desktop/visualassistant/demo/v0.1.1/player/MethodSettings.json");
     loadSettingsOptics("/Users/kiko/Desktop/visualassistant/demo/v0.1.1/player/OpticalSettings.json");
+
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+    show();
+    activateWindow();
 }
 
 VideoPlayer::~VideoPlayer()
@@ -208,6 +210,9 @@ void VideoPlayer::play()
         break;
     default:
         mediaPlayer.play();
+        if(framePlane->isHidden()) {
+            framePlane->show();
+        }
         break;
     }
 }
